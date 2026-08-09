@@ -6,6 +6,11 @@ actual design system (pink Game Boy palette, pixel-panel hard-shadow
 boxes, Press Start 2P / VT323 / Plus Jakarta Sans) -- blank pale "menu
 screen" start state, floods to the detected album's color on prediction.
 
+Centering uses Streamlit's native column layout (not custom flex CSS
+fighting Streamlit's internal DOM) so it works reliably on both mobile
+(columns stack full-width automatically) and desktop (side columns
+constrain the middle column's width).
+
 Run with: streamlit run ml/app.py
 Deploy for free on Streamlit Community Cloud or a Hugging Face Space --
 this is the "shippable artifact" that turns the project from an analysis
@@ -73,9 +78,8 @@ def theme_for_album(album_name: str) -> dict:
 
 
 def apply_theme(theme: dict, flooded: bool = False):
-    """flooded=True is the post-prediction full-color 'screen fill' state,
-    styled like the site's dark chip variants. flooded=False is the blank
-    pale 'menu screen' start state matching the homepage exactly."""
+    """flooded=True is the post-prediction full-color 'screen fill' state.
+    flooded=False is the blank pale 'menu screen' start state."""
     bg = theme["bg"] if flooded else SCREEN
     fg = theme["panel_text"] if flooded else INK
 
@@ -88,18 +92,27 @@ def apply_theme(theme: dict, flooded: bool = False):
             font-family: {FONT_UI} !important;
             transition: background-color 0.5s ease-in-out;
         }}
-        h1 {{
+        h1, h2, h3 {{
             font-family: {FONT_PIXEL} !important;
-            font-size: 28px !important;
             color: {fg} !important;
-            text-shadow: 4px 4px 0 {theme['accent'] if not flooded else '#00000040'};
+            text-align: center !important;
             line-height: 1.4 !important;
         }}
-        .stCaption, .stMarkdown p, label {{
+        h1 {{
+            font-size: 26px !important;
+            text-shadow: 4px 4px 0 {theme['accent'] if not flooded else '#00000040'};
+        }}
+        .stCaption, .stMarkdown p {{
             font-family: {FONT_BODY} !important;
             font-size: 17px !important;
             color: {fg} !important;
             opacity: {0.85 if flooded else 0.8};
+            text-align: center !important;
+        }}
+        label {{
+            font-family: {FONT_BODY} !important;
+            font-size: 17px !important;
+            color: {fg} !important;
         }}
         div[data-testid="stMetricValue"] {{
             font-family: {FONT_PIXEL} !important;
@@ -118,6 +131,11 @@ def apply_theme(theme: dict, flooded: bool = False):
             font-family: {FONT_BODY} !important;
             font-size: 20px !important;
             box-shadow: 4px 4px 0 {INK};
+            text-align: center;
+        }}
+        .stButton {{
+            display: flex;
+            justify-content: center;
         }}
         .stButton>button {{
             background-color: {theme['accent']} !important;
@@ -140,27 +158,6 @@ def apply_theme(theme: dict, flooded: bool = False):
             box-shadow: 6px 6px 0 {INK};
             padding: 14px;
         }}
-        div.block-container {{
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            max-width: 700px;
-            margin: 0 auto;
-        }}
-        div.block-container > div {{
-            width: 100%;
-        }}
-        .stTextInput, .stButton, .stCaption, .stAlert {{
-            display: flex;
-            justify-content: center;
-            text-align: center;
-        }}
-        .stTextInput > div {{
-            width: 100%;
-            max-width: 500px;
-        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -168,6 +165,9 @@ def apply_theme(theme: dict, flooded: bool = False):
 
 
 def hex_to_rgba(hex_color: str, alpha: float = 0.25) -> str:
+    """Converts '#RRGGBB' to 'rgba(r,g,b,a)' -- Plotly doesn't accept the
+    8-digit hex-with-alpha shorthand, so this is the correct way to get a
+    semi-transparent gridline color."""
     h = hex_color.lstrip("#")
     r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
     return f"rgba({r},{g},{b},{alpha})"
@@ -203,114 +203,108 @@ def known_album_for_track(track_name: str) -> str | None:
     return match.iloc[0]["album_name"]
 
 
-st.set_page_config(page_title="Weeknd Emotional Arc Predictor", layout="centered")
-
-
 def reset_search():
     if "track_input" in st.session_state:
         del st.session_state["track_input"]
 
+
+st.set_page_config(page_title="Weeknd Emotional Arc Predictor", layout="centered")
 apply_theme(DEFAULT_THEME, flooded=False)
-st.markdown(
-    f"""<h1 style="text-align:center;">🎵 THE WEEKND MOOD PREDICTOR</h1>""",
-    unsafe_allow_html=True,
-)
 
-track_name = st.text_input("ENTER TRACK", "Blinding Lights", key="track_input")
-st.caption(
-    "Press start to predict energy & valence from raw audio. "
-    "Trained on 100+ tracks, tested on After Hours. "
-    "Screen floods with the detected album's color."
-)
-go_pressed = st.button("▶ PRESS START")
+# Native Streamlit columns for centering -- responsive by design: on
+# mobile, Streamlit stacks columns full-width automatically; on desktop,
+# the side columns constrain the middle column to a comfortable reading
+# width. This is far more reliable than fighting Streamlit's internal
+# DOM with custom flexbox CSS.
+_, mid, _ = st.columns([1, 6, 1])
 
-if go_pressed and not track_name.strip():
-    st.error("TYPE A TRACK NAME FIRST")
-elif go_pressed:
-    with st.spinner("LOADING..."):
-        result = itunes_lookup(track_name)
-        artist_ok = result and ARTIST.lower() in result.get("artistName", "").lower()
-        track_ok = result and track_name.strip().lower() in result.get("trackName", "").lower()
+with mid:
+    st.markdown("<h1>🎵 THE WEEKND MOOD PREDICTOR</h1>", unsafe_allow_html=True)
 
-        if not result or not artist_ok or not track_ok:
-            apply_theme(DEFAULT_THEME, flooded=False)
-            st.markdown(
-                f"""
-                <h2 style="text-align:center; font-family:{FONT_PIXEL}; font-size:20px; color:{INK};">
-                    YOU AIN'T <span style="color:{PINK}; text-shadow: 3px 3px 0 {INK};">XO</span>
-                </h2>
-                """,
-                unsafe_allow_html=True,
-            )
-            col_l, col_mid, col_r = st.columns([1, 2, 1])
-            with col_mid:
-                st.image("assets/not_the_weeknd_meme.jpg", use_container_width=True)
-            st.markdown(
-                f"""
-                <h3 style="text-align:center; font-family:{FONT_PIXEL}; font-size:16px; color:{INK}; margin-top:16px;">
-                    SO YOU GOTTA GO 👉
-                </h3>
-                """,
-                unsafe_allow_html=True,
-            )
-            st.button("🔁 TRY AGAIN", on_click=reset_search)
-        else:
-            # Prefer our own authoritative album data over iTunes' collectionName,
-            # which sometimes labels tracks as "Single" instead of the real album.
-            album_for_theme = known_album_for_track(track_name) or result.get("collectionName", "")
-            theme = theme_for_album(album_for_theme)
-            apply_theme(theme, flooded=True)
-            st.markdown(
-                f"""<h2 style="text-align:center; font-family:{FONT_PIXEL};">🎵 {theme['name']}</h2>""",
-                unsafe_allow_html=True,
-            )
+    track_name = st.text_input("ENTER TRACK", "Blinding Lights", key="track_input")
+    st.caption(
+        "Press start to predict energy & valence from raw audio. "
+        "Trained on 100+ tracks, tested on After Hours. "
+        "Screen floods with the detected album's color."
+    )
+    go_pressed = st.button("▶ PRESS START")
 
-            path = download(track_name, result["previewUrl"])
-            feats = extract_features(path)
+    if go_pressed and not track_name.strip():
+        st.error("TYPE A TRACK NAME FIRST")
+    elif go_pressed:
+        with st.spinner("LOADING..."):
+            result = itunes_lookup(track_name)
+            artist_ok = result and ARTIST.lower() in result.get("artistName", "").lower()
+            # Also verify the returned track actually matches what was searched --
+            # iTunes' search biases toward "The Weeknd" results just because that
+            # text is in every query, even for songs that aren't his at all.
+            track_ok = result and track_name.strip().lower() in result.get("trackName", "").lower()
 
-            valence_bundle = joblib.load(os.path.join(MODEL_DIR, "valence_model.joblib"))
-            energy_bundle = joblib.load(os.path.join(MODEL_DIR, "energy_model.joblib"))
+            if not result or not artist_ok or not track_ok:
+                apply_theme(DEFAULT_THEME, flooded=False)
+                st.markdown(
+                    f"""<h2>YOU AIN'T <span style="color:{PINK}; text-shadow: 3px 3px 0 {INK};">XO</span></h2>""",
+                    unsafe_allow_html=True,
+                )
+                img_l, img_mid, img_r = st.columns([1, 2, 1])
+                with img_mid:
+                    st.image("assets/not_the_weeknd_meme.jpg", use_container_width=True)
+                st.markdown(
+                    """<h3 style="margin-top:16px;">SO YOU GOTTA GO 👉</h3>""",
+                    unsafe_allow_html=True,
+                )
+                st.button("🔁 TRY AGAIN", on_click=reset_search)
+            else:
+                # Prefer our own authoritative album data over iTunes' collectionName,
+                # which sometimes labels tracks as "Single" instead of the real album.
+                album_for_theme = known_album_for_track(track_name) or result.get("collectionName", "")
+                theme = theme_for_album(album_for_theme)
+                apply_theme(theme, flooded=True)
+                st.markdown(f"""<h2>🎵 {theme['name']}</h2>""", unsafe_allow_html=True)
 
-            valence_cols = valence_bundle.get("features", FEATURE_COLS)
-            energy_cols = energy_bundle.get("features", FEATURE_COLS)
+                path = download(track_name, result["previewUrl"])
+                feats = extract_features(path)
 
-            X_valence = pd.DataFrame([feats]).reindex(columns=valence_cols, fill_value=0).values
-            X_energy = pd.DataFrame([feats])[energy_cols].values
+                valence_bundle = joblib.load(os.path.join(MODEL_DIR, "valence_model.joblib"))
+                energy_bundle = joblib.load(os.path.join(MODEL_DIR, "energy_model.joblib"))
 
-            valence_pred = valence_bundle["model"].predict(valence_bundle["scaler"].transform(X_valence))[0]
-            energy_pred = energy_bundle["model"].predict(energy_bundle["scaler"].transform(X_energy))[0]
+                valence_cols = valence_bundle.get("features", FEATURE_COLS)
+                energy_cols = energy_bundle.get("features", FEATURE_COLS)
 
-            st.audio(result["previewUrl"])
+                X_valence = pd.DataFrame([feats]).reindex(columns=valence_cols, fill_value=0).values
+                X_energy = pd.DataFrame([feats])[energy_cols].values
 
-            col1, col2 = st.columns(2)
-            col1.metric("ENERGY SCORE", f"{energy_pred:.2f}")
-            col2.metric("VALENCE SCORE", f"{valence_pred:.2f}")
+                valence_pred = valence_bundle["model"].predict(valence_bundle["scaler"].transform(X_valence))[0]
+                energy_pred = energy_bundle["model"].predict(energy_bundle["scaler"].transform(X_energy))[0]
 
-            st.warning(
-                "ENERGY SCORE IS VALIDATED (R²=0.14 on unseen tracks). "
-                "VALENCE SCORE IS EXPERIMENTAL — model performed no better than "
-                "guessing the average, so treat this number as illustrative only.",
-                icon="⚠️",
-            )
+                st.audio(result["previewUrl"])
 
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=[valence_pred], y=[energy_pred], mode="markers+text",
-                marker=dict(size=20, color=theme["panel_text"], line=dict(width=4, color=INK)),
-                text=[track_name.upper()], textposition="top center",
-                textfont=dict(family="VT323", size=16, color=theme["panel_text"]),
-            ))
-            fig.update_layout(
-                xaxis=dict(title="VALENCE (SAD → HAPPY)", range=[0, 1], color=theme["panel_text"], gridcolor=hex_to_rgba(theme["panel_text"])),
-                yaxis=dict(title="ENERGY (CALM → INTENSE)", range=[0, 1], color=theme["panel_text"], gridcolor=hex_to_rgba(theme["panel_text"])),
-                height=450,
-                plot_bgcolor=theme["bg"], paper_bgcolor=theme["bg"],
-                font=dict(family="VT323", size=16, color=theme["panel_text"]),
-            )
-            fig.add_hline(y=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
-            fig.add_vline(x=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
-            st.plotly_chart(fig, use_container_width=True)
-            st.button("🔁 TRY ANOTHER SONG", on_click=reset_search)
+                col1, col2 = st.columns(2)
+                col1.metric("ENERGY SCORE", f"{energy_pred:.2f}")
+                col2.metric("VALENCE SCORE", f"{valence_pred:.2f}")
 
+                st.warning(
+                    "ENERGY SCORE IS VALIDATED (R²=0.14 on unseen tracks). "
+                    "VALENCE SCORE IS EXPERIMENTAL — model performed no better than "
+                    "guessing the average, so treat this number as illustrative only.",
+                    icon="⚠️",
+                )
 
-
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(
+                    x=[valence_pred], y=[energy_pred], mode="markers+text",
+                    marker=dict(size=20, color=theme["panel_text"], line=dict(width=4, color=INK)),
+                    text=[track_name.upper()], textposition="top center",
+                    textfont=dict(family="VT323", size=16, color=theme["panel_text"]),
+                ))
+                fig.update_layout(
+                    xaxis=dict(title="VALENCE (SAD → HAPPY)", range=[0, 1], color=theme["panel_text"], gridcolor=hex_to_rgba(theme["panel_text"])),
+                    yaxis=dict(title="ENERGY (CALM → INTENSE)", range=[0, 1], color=theme["panel_text"], gridcolor=hex_to_rgba(theme["panel_text"])),
+                    height=450,
+                    plot_bgcolor=theme["bg"], paper_bgcolor=theme["bg"],
+                    font=dict(family="VT323", size=16, color=theme["panel_text"]),
+                )
+                fig.add_hline(y=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
+                fig.add_vline(x=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
+                st.plotly_chart(fig, use_container_width=True)
+                st.button("🔁 TRY ANOTHER SONG", on_click=reset_search)
