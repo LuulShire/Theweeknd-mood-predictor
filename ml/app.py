@@ -217,7 +217,9 @@ elif go_pressed:
                 """,
                 unsafe_allow_html=True,
             )
-            st.image("assets/not_the_weeknd_meme.jpg", use_container_width=True)
+            col_l, col_mid, col_r = st.columns([1, 2, 1])
+            with col_mid:
+                st.image("assets/not_the_weeknd_meme.jpg", use_container_width=True)
             st.markdown(
                 f"""
                 <h3 style="text-align:center; font-family:{FONT_PIXEL}; font-size:16px; color:{INK}; margin-top:16px;">
