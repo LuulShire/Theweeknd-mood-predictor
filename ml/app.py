@@ -53,10 +53,10 @@ ALBUM_THEMES = {
     "after hours": {"bg": "#3B0A0A", "accent": "#E63946", "panel_text": "#FFFFFF", "name": "AFTER HOURS"},
     "dawn fm":     {"bg": "#232C36", "accent": "#5C7A99", "panel_text": "#FFFFFF", "name": "DAWN FM"},
     "starboy":     {"bg": "#B3123B", "accent": "#0D0D0D", "panel_text": "#FFFFFF", "name": "STARBOY"},
-    "beauty behind the madness": {"bg": "#161616", "accent": "#F2F2F2", "panel_text": "#111111", "name": "BEAUTY BEHIND THE MADNESS"},
+    "beauty behind the madness": {"bg": "#161616", "accent": "#2B1225", "panel_text": "#F5F5F5", "name": "BEAUTY BEHIND THE MADNESS"},
     "kiss land":   {"bg": "#0B1E2D", "accent": "#2E6E8E", "panel_text": "#FFFFFF", "name": "KISS LAND"},
     "my dear melancholy": {"bg": "#7A2E14", "accent": "#FF6B35", "panel_text": "#FFFFFF", "name": "MY DEAR MELANCHOLY,"},
-    "trilogy":     {"bg": "#141414", "accent": "#8A8A8A", "panel_text": "#FFFFFF", "name": "TRILOGY"},
+    "trilogy":     {"bg": "#141414", "accent": "#5C5C5C", "panel_text": "#FFFFFF", "name": "TRILOGY"},
     "hurry up tomorrow": {"bg": "#E8DFC8", "accent": "#1A1A1A", "panel_text": "#1A1A1A", "name": "HURRY UP TOMORROW"},
 }
 DEFAULT_THEME = {"bg": SCREEN, "accent": MINT, "panel_text": "#FFFFFF", "name": "THE WEEKND"}
@@ -204,8 +204,9 @@ elif go_pressed:
     with st.spinner("LOADING..."):
         result = itunes_lookup(track_name)
         artist_ok = result and ARTIST.lower() in result.get("artistName", "").lower()
+        track_ok = result and track_name.strip().lower() in result.get("trackName", "").lower()
 
-        if not result or not artist_ok:
+        if not result or not artist_ok or not track_ok:
             apply_theme(DEFAULT_THEME, flooded=False)
             st.markdown(
                 f"""
