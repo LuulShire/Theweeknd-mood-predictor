@@ -157,6 +157,12 @@ def apply_theme(theme: dict, flooded: bool = False):
     )
 
 
+def hex_to_rgba(hex_color: str, alpha: float = 0.25) -> str:
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
 def itunes_lookup(track_name: str, album_hint: str = "", artist_hint: str = ARTIST) -> dict | None:
     """Returns {previewUrl, collectionName, artistName} or None. Prefers a
     result whose album matches album_hint, if given."""
@@ -262,8 +268,8 @@ elif go_pressed:
                 textfont=dict(family="VT323", size=16, color=theme["panel_text"]),
             ))
             fig.update_layout(
-                xaxis=dict(title="VALENCE (SAD → HAPPY)", range=[0, 1], color=theme["panel_text"], gridcolor=theme["panel_text"]+"40"),
-                yaxis=dict(title="ENERGY (CALM → INTENSE)", range=[0, 1], color=theme["panel_text"], gridcolor=theme["panel_text"]+"40"),
+                xaxis=dict(title="VALENCE (SAD → HAPPY)", range=[0, 1], color=theme["panel_text"], gridcolor=hex_to_rgba(theme["panel_text"])),
+                yaxis=dict(title="ENERGY (CALM → INTENSE)", range=[0, 1], color=theme["panel_text"], gridcolor=hex_to_rgba(theme["panel_text"])),
                 height=450,
                 plot_bgcolor=theme["bg"], paper_bgcolor=theme["bg"],
                 font=dict(family="VT323", size=16, color=theme["panel_text"]),
