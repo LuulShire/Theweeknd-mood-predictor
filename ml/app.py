@@ -140,6 +140,17 @@ def apply_theme(theme: dict, flooded: bool = False):
             box-shadow: 6px 6px 0 {INK};
             padding: 14px;
         }}
+        section.main > div.block-container {{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            max-width: 700px;
+        }}
+        section.main > div.block-container > div {{
+            width: 100%;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -179,14 +190,13 @@ def known_album_for_track(track_name: str) -> str | None:
 st.set_page_config(page_title="Weeknd Emotional Arc Predictor", layout="centered")
 
 track_name = st.text_input("ENTER TRACK", "Blinding Lights")
-album_hint = st.text_input("ALBUM (OPTIONAL)", "After Hours")
 go_pressed = st.button("▶ PRESS START")
 
 if go_pressed and not track_name.strip():
     st.error("TYPE A TRACK NAME FIRST")
 elif go_pressed:
     with st.spinner("LOADING..."):
-        result = itunes_lookup(track_name, album_hint)
+        result = itunes_lookup(track_name)
         artist_ok = result and ARTIST.lower() in result.get("artistName", "").lower()
 
         if not result or not artist_ok:
