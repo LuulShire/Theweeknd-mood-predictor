@@ -140,15 +140,16 @@ def apply_theme(theme: dict, flooded: bool = False):
             box-shadow: 6px 6px 0 {INK};
             padding: 14px;
         }}
-        section.main > div.block-container {{
+        div.block-container {{
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             max-width: 700px;
+            margin: 0 auto;
         }}
-        section.main > div.block-container > div {{
+        div.block-container > div {{
             width: 100%;
         }}
         </style>
