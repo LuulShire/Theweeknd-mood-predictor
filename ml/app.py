@@ -152,6 +152,15 @@ def apply_theme(theme: dict, flooded: bool = False):
         div.block-container > div {{
             width: 100%;
         }}
+        .stTextInput, .stButton, .stCaption, .stAlert {{
+            display: flex;
+            justify-content: center;
+            text-align: center;
+        }}
+        .stTextInput > div {{
+            width: 100%;
+            max-width: 500px;
+        }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -196,7 +205,18 @@ def known_album_for_track(track_name: str) -> str | None:
 
 st.set_page_config(page_title="Weeknd Emotional Arc Predictor", layout="centered")
 
+apply_theme(DEFAULT_THEME, flooded=False)
+st.markdown(
+    f"""<h1 style="text-align:center;">🎵 THE WEEKND MOOD PREDICTOR</h1>""",
+    unsafe_allow_html=True,
+)
+
 track_name = st.text_input("ENTER TRACK", "Blinding Lights")
+st.caption(
+    "Press start to predict energy & valence from raw audio. "
+    "Trained on 100+ tracks, tested on After Hours. "
+    "Screen floods with the detected album's color."
+)
 go_pressed = st.button("▶ PRESS START")
 
 if go_pressed and not track_name.strip():
@@ -234,7 +254,10 @@ elif go_pressed:
             album_for_theme = known_album_for_track(track_name) or result.get("collectionName", "")
             theme = theme_for_album(album_for_theme)
             apply_theme(theme, flooded=True)
-            st.title(f"🎵 {theme['name']}")
+            st.markdown(
+                f"""<h2 style="text-align:center; font-family:{FONT_PIXEL};">🎵 {theme['name']}</h2>""",
+                unsafe_allow_html=True,
+            )
 
             path = download(track_name, result["previewUrl"])
             feats = extract_features(path)
@@ -281,14 +304,6 @@ elif go_pressed:
             fig.add_hline(y=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
             fig.add_vline(x=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
             st.plotly_chart(fig, use_container_width=True)
-else:
-    apply_theme(DEFAULT_THEME, flooded=False)
-    st.title("🎵 WEEKND MOOD PREDICTOR")
-    st.caption(
-        "Press start to predict energy & valence from raw audio. "
-        "Trained on 100+ tracks, tested on After Hours. "
-        "Screen floods with the detected album's color."
-    )
 
 
 
