@@ -97,7 +97,7 @@ def apply_theme(theme: dict, flooded: bool = False):
         }}
         .stCaption, .stMarkdown p, label {{
             font-family: {FONT_BODY} !important;
-            font-size: 20px !important;
+            font-size: 17px !important;
             color: {fg} !important;
             opacity: {0.85 if flooded else 0.8};
         }}
@@ -205,13 +205,18 @@ def known_album_for_track(track_name: str) -> str | None:
 
 st.set_page_config(page_title="Weeknd Emotional Arc Predictor", layout="centered")
 
+
+def reset_search():
+    if "track_input" in st.session_state:
+        del st.session_state["track_input"]
+
 apply_theme(DEFAULT_THEME, flooded=False)
 st.markdown(
     f"""<h1 style="text-align:center;">🎵 THE WEEKND MOOD PREDICTOR</h1>""",
     unsafe_allow_html=True,
 )
 
-track_name = st.text_input("ENTER TRACK", "Blinding Lights")
+track_name = st.text_input("ENTER TRACK", "Blinding Lights", key="track_input")
 st.caption(
     "Press start to predict energy & valence from raw audio. "
     "Trained on 100+ tracks, tested on After Hours. "
@@ -248,6 +253,7 @@ elif go_pressed:
                 """,
                 unsafe_allow_html=True,
             )
+            st.button("🔁 TRY AGAIN", on_click=reset_search)
         else:
             # Prefer our own authoritative album data over iTunes' collectionName,
             # which sometimes labels tracks as "Single" instead of the real album.
@@ -281,7 +287,7 @@ elif go_pressed:
             col2.metric("VALENCE SCORE", f"{valence_pred:.2f}")
 
             st.warning(
-                "⚠️ ENERGY SCORE IS VALIDATED (R²=0.14 on unseen tracks). "
+                "ENERGY SCORE IS VALIDATED (R²=0.14 on unseen tracks). "
                 "VALENCE SCORE IS EXPERIMENTAL — model performed no better than "
                 "guessing the average, so treat this number as illustrative only.",
                 icon="⚠️",
@@ -304,6 +310,7 @@ elif go_pressed:
             fig.add_hline(y=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
             fig.add_vline(x=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
             st.plotly_chart(fig, use_container_width=True)
+            st.button("🔁 TRY ANOTHER SONG", on_click=reset_search)
 
 
 
