@@ -1,0 +1,264 @@
+{
+  "valence": {
+    "target": "valence",
+    "selected_model": "linear_regression",
+    "cv_results": {
+      "linear_regression": {
+        "cv_r2_mean": -0.195,
+        "cv_r2_std": 0.192
+      },
+      "random_forest": {
+        "cv_r2_mean": -0.22,
+        "cv_r2_std": 0.383
+      },
+      "gradient_boosting": {
+        "cv_r2_mean": -0.465,
+        "cv_r2_std": 0.567
+      }
+    },
+    "held_out_test_r2": 0.009,
+    "held_out_test_mae": 0.157,
+    "n_train": 99,
+    "n_test": 17,
+    "feature_importance_top5": [
+      [
+        "mfcc_2",
+        0.25801933369152913
+      ],
+      [
+        "spectral_bandwidth",
+        0.2255830453893072
+      ],
+      [
+        "spectral_centroid",
+        0.21536488135938003
+      ],
+      [
+        "mfcc_1",
+        0.1448907767117006
+      ],
+      [
+        "zero_crossing_rate",
+        0.09334771659838895
+      ]
+    ],
+    "predictions": [
+      {
+        "track": "Alone Again",
+        "actual": 0.058,
+        "predicted": 0.148
+      },
+      {
+        "track": "Too Late",
+        "actual": 0.185,
+        "predicted": 0.384
+      },
+      {
+        "track": "Hardest To Love",
+        "actual": 0.103,
+        "predicted": 0.377
+      },
+      {
+        "track": "Scared To Live",
+        "actual": 0.211,
+        "predicted": 0.338
+      },
+      {
+        "track": "Snowchild",
+        "actual": 0.24,
+        "predicted": 0.338
+      },
+      {
+        "track": "Escape From LA",
+        "actual": 0.169,
+        "predicted": 0.376
+      },
+      {
+        "track": "Heartless",
+        "actual": 0.234,
+        "predicted": 0.345
+      },
+      {
+        "track": "Faith",
+        "actual": 0.123,
+        "predicted": 0.392
+      },
+      {
+        "track": "Blinding Lights",
+        "actual": 0.342,
+        "predicted": 0.498
+      },
+      {
+        "track": "In Your Eyes",
+        "actual": 0.705,
+        "predicted": 0.538
+      },
+      {
+        "track": "Save Your Tears",
+        "actual": 0.623,
+        "predicted": 0.457
+      },
+      {
+        "track": "Repeat After Me (Interlude)",
+        "actual": 0.145,
+        "predicted": 0.219
+      },
+      {
+        "track": "After Hours",
+        "actual": 0.14,
+        "predicted": 0.249
+      },
+      {
+        "track": "Until I Bleed Out",
+        "actual": 0.178,
+        "predicted": 0.295
+      },
+      {
+        "track": "Nothing Compares - Bonus Track",
+        "actual": 0.04,
+        "predicted": 0.37
+      },
+      {
+        "track": "Missed You - Bonus Track",
+        "actual": 0.321,
+        "predicted": 0.343
+      },
+      {
+        "track": "Final Lullaby - Bonus Track",
+        "actual": 0.318,
+        "predicted": 0.171
+      }
+    ]
+  },
+  "energy": {
+    "target": "energy",
+    "selected_model": "random_forest",
+    "cv_results": {
+      "linear_regression": {
+        "cv_r2_mean": -0.021,
+        "cv_r2_std": 0.384
+      },
+      "random_forest": {
+        "cv_r2_mean": 0.147,
+        "cv_r2_std": 0.306
+      },
+      "gradient_boosting": {
+        "cv_r2_mean": 0.048,
+        "cv_r2_std": 0.522
+      }
+    },
+    "held_out_test_r2": 0.203,
+    "held_out_test_mae": 0.115,
+    "n_train": 99,
+    "n_test": 17,
+    "feature_importance_top5": [
+      [
+        "mfcc_1",
+        0.3239280759679333
+      ],
+      [
+        "zero_crossing_rate",
+        0.10323632171244014
+      ],
+      [
+        "minor_key_corr",
+        0.09494253972691909
+      ],
+      [
+        "mfcc_13",
+        0.061669607521289964
+      ],
+      [
+        "mfcc_10",
+        0.044137761300400064
+      ]
+    ],
+    "predictions": [
+      {
+        "track": "Alone Again",
+        "actual": 0.653,
+        "predicted": 0.464
+      },
+      {
+        "track": "Too Late",
+        "actual": 0.869,
+        "predicted": 0.663
+      },
+      {
+        "track": "Hardest To Love",
+        "actual": 0.609,
+        "predicted": 0.569
+      },
+      {
+        "track": "Scared To Live",
+        "actual": 0.493,
+        "predicted": 0.663
+      },
+      {
+        "track": "Snowchild",
+        "actual": 0.61,
+        "predicted": 0.494
+      },
+      {
+        "track": "Escape From LA",
+        "actual": 0.548,
+        "predicted": 0.525
+      },
+      {
+        "track": "Heartless",
+        "actual": 0.752,
+        "predicted": 0.691
+      },
+      {
+        "track": "Faith",
+        "actual": 0.605,
+        "predicted": 0.738
+      },
+      {
+        "track": "Blinding Lights",
+        "actual": 0.727,
+        "predicted": 0.678
+      },
+      {
+        "track": "In Your Eyes",
+        "actual": 0.72,
+        "predicted": 0.692
+      },
+      {
+        "track": "Save Your Tears",
+        "actual": 0.817,
+        "predicted": 0.617
+      },
+      {
+        "track": "Repeat After Me (Interlude)",
+        "actual": 0.607,
+        "predicted": 0.498
+      },
+      {
+        "track": "After Hours",
+        "actual": 0.572,
+        "predicted": 0.489
+      },
+      {
+        "track": "Until I Bleed Out",
+        "actual": 0.37,
+        "predicted": 0.456
+      },
+      {
+        "track": "Nothing Compares - Bonus Track",
+        "actual": 0.577,
+        "predicted": 0.558
+      },
+      {
+        "track": "Missed You - Bonus Track",
+        "actual": 0.374,
+        "predicted": 0.495
+      },
+      {
+        "track": "Final Lullaby - Bonus Track",
+        "actual": 0.26,
+        "predicted": 0.576
+      }
+    ]
+  }
+}

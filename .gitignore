@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+data/audio_previews_full/
+data/audio_previews/
+.DS_Store
