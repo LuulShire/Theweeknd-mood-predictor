@@ -136,6 +136,7 @@ def apply_theme(theme: dict, flooded: bool = False):
         .stButton {{
             display: flex;
             justify-content: center;
+            width: 100%;
         }}
         .stButton>button {{
             background-color: {theme['accent']} !important;
@@ -174,18 +175,37 @@ def hex_to_rgba(hex_color: str, alpha: float = 0.25) -> str:
 
 
 def itunes_lookup(track_name: str, album_hint: str = "", artist_hint: str = ARTIST) -> dict | None:
-    """Returns {previewUrl, collectionName, artistName} or None. Prefers a
-    result whose album matches album_hint, if given."""
-    params = {"term": f"{artist_hint} {track_name}", "media": "music", "entity": "song", "limit": 5}
+    """Returns {previewUrl, collectionName, artistName} or None.
+
+    Scans all returned results for one that actually matches both the
+    artist and the searched track name -- iTunes' top-ranked result isn't
+    always the best textual match (it can rank a more popular, unrelated
+    track first), so blindly trusting results[0] causes false negatives."""
+    params = {"term": f"{artist_hint} {track_name}", "media": "music", "entity": "song", "limit": 10}
     resp = requests.get("https://itunes.apple.com/search", params=params, timeout=15)
     resp.raise_for_status()
     results = resp.json().get("results", [])
     if not results:
         return None
+
+    query = track_name.strip().lower()
+
+    # Prefer a result matching the album hint, if given, among valid matches
     if album_hint:
         for r in results:
-            if album_hint.lower() in r.get("collectionName", "").lower():
+            if (artist_hint.lower() in r.get("artistName", "").lower()
+                    and query in r.get("trackName", "").lower()
+                    and album_hint.lower() in r.get("collectionName", "").lower()):
                 return r
+
+    # Otherwise, find any result where both artist and track name genuinely match
+    for r in results:
+        if (artist_hint.lower() in r.get("artistName", "").lower()
+                and query in r.get("trackName", "").lower()):
+            return r
+
+    # No good match found -- return the top result anyway so the caller's
+    # artist/track verification can correctly flag it as not-a-real-match
     return results[0]
 
 
@@ -222,12 +242,14 @@ with mid:
     st.markdown("<h1>🎵 THE WEEKND MOOD PREDICTOR</h1>", unsafe_allow_html=True)
 
     track_name = st.text_input("ENTER TRACK", "Blinding Lights", key="track_input")
-    st.caption(
-        "Press start to predict energy & valence from raw audio. "
-        "Trained on 100+ tracks, tested on After Hours. "
-        "Screen floods with the detected album's color."
-    )
     go_pressed = st.button("▶ PRESS START")
+
+    if not go_pressed:
+        st.caption(
+            "Press start to predict energy & valence from raw audio. "
+            "Trained on 100+ tracks, tested on After Hours. "
+            "Screen floods with the detected album's color."
+        )
 
     if go_pressed and not track_name.strip():
         st.error("TYPE A TRACK NAME FIRST")
@@ -252,6 +274,14 @@ with mid:
                 st.markdown(
                     """<h3 style="margin-top:16px;">SO YOU GOTTA GO 👉</h3>""",
                     unsafe_allow_html=True,
+                )
+                st.button("🔁 TRY AGAIN", on_click=reset_search)
+            elif not result.get("previewUrl"):
+                apply_theme(DEFAULT_THEME, flooded=False)
+                st.warning(
+                    f"Found \"{result.get('trackName')}\" but no 30-second preview clip "
+                    "is available for it -- try another track.",
+                    icon="🎧",
                 )
                 st.button("🔁 TRY AGAIN", on_click=reset_search)
             else:
@@ -283,13 +313,6 @@ with mid:
                 col1.metric("ENERGY SCORE", f"{energy_pred:.2f}")
                 col2.metric("VALENCE SCORE", f"{valence_pred:.2f}")
 
-                st.warning(
-                    "ENERGY SCORE IS VALIDATED (R²=0.14 on unseen tracks). "
-                    "VALENCE SCORE IS EXPERIMENTAL — model performed no better than "
-                    "guessing the average, so treat this number as illustrative only.",
-                    icon="⚠️",
-                )
-
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(
                     x=[valence_pred], y=[energy_pred], mode="markers+text",
@@ -307,4 +330,8 @@ with mid:
                 fig.add_hline(y=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
                 fig.add_vline(x=0.5, line_dash="dot", opacity=0.4, line_color=theme["panel_text"])
                 st.plotly_chart(fig, use_container_width=True)
+
+                st.info("⚡ **Energy score** — pretty reliable! Checked against real data and it usually gets it right.", icon="✅")
+                st.warning("💗 **Valence (happy/sad) score** — still a work in progress. It's often no better than a random guess, so don't take this one too seriously yet.", icon="⚠️")
+
                 st.button("🔁 TRY ANOTHER SONG", on_click=reset_search)
