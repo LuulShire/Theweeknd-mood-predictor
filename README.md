@@ -93,37 +93,18 @@ streamlit run ml/app.py             # interactive demo: type a track, get predic
   R², final performance reported only on the held-out set.
 - SHAP used for feature-level interpretability, not just importance ranking.
 
-**Run this, then fill in `data/model_results.json`'s numbers below.**
+## Results
 
-## Case study draft (for portfolio page)
+Final scores are reported only on the 17-track held-out test set (After Hours Deluxe), never used for training or model selection.
 
-**Weeknd Mood Predictor — Modeling Spotify's Deprecated Audio Features from Raw Sound | ML Engineering**
+| Target  | Held-out R² | What it means |
+|---------|-------------|---------------|
+| Energy  | 0.203       | Real, validated signal from raw audio |
+| Valence | 0.009       | No better than predicting the average |
 
-Independent project · Python, librosa, scikit-learn, SHAP, Streamlit
+**Why valence underperformed:** SHAP analysis showed clean, consistent feature contributions for energy but noisy, inconsistent ones for valence. The bottleneck is the audio signal itself, not the modeling approach. This is consistent with published music research showing arousal (energy) is much easier to predict from audio than emotional valence.
 
-- Spotify deprecated its audio-features API (valence, energy, tempo) in
-  2024 with no official replacement. Rather than rely on a dead endpoint,
-  built a supervised regression pipeline that predicts these values
-  directly from raw audio, using 22 hand-engineered `librosa` features
-  (spectral, timbral, and harmonic descriptors) as inputs.
-- Trained on 100 tracks spanning The Weeknd's catalog, evaluated on the
-  After Hours album (17 tracks, including bonus cuts) as a fully held-out
-  test set — model selection used 5-fold cross-validation, never touching
-  the test set until final evaluation.
-- Compared Linear Regression, Random Forest, and Gradient Boosting;
-  selected [FILL IN: best model] for valence (held-out R² = [___], MAE =
-  [___]) and [FILL IN] for energy (R² = [___], MAE = [___]).
-- Used SHAP to interpret which audio characteristics most influence
-  predicted mood — e.g. [FILL IN: e.g. "major-key correlation and spectral
-  brightness were the strongest valence predictors"].
-- Layered a VADER + transformer-based lyric sentiment comparison on top,
-  to examine whether audio mood and lyrical mood diverge across the
-  tracklist (largest gap: [FILL IN track]).
-- Shipped a live Streamlit demo where users can input any Weeknd track and
-  get a predicted mood score in real time.
+**Lyric sentiment test:** Adding VADER lyric sentiment (116 tracks via the Genius API) did not help, because VADER saturated near ±1.0 on about 90% of tracks, too coarse to separate songs. A transformer-based sentiment model is the evidence-backed next step.
 
-*(Fill in bracketed values after running `python ml/train_model.py` — do
-not publish placeholder/synthetic numbers; every number above must come
-from a real run against real audio and the real Spotify targets in
-`theWeekndAll.csv`.)*
+**Live app:** https://theweeknd-mood-predictor-ls.streamlit.app
 
